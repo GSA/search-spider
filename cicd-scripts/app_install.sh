@@ -7,7 +7,6 @@ sudo chmod +x ./cicd-scripts/helpers/ensure_executable.sh
 source ./cicd-scripts/helpers/ensure_executable.sh
 
 ### VARIABLES ###
-SPIDER_PYTHON_VERSION=3.12
 _CURRENT_BUILD_DIR=${PWD}
 VENV_DIR=./venv
 
@@ -55,6 +54,12 @@ check_python() {
     fi
 }
 
+# Fetch environment variables from parameter store
+fetch_env_vars() {
+    echo "Fetching environment variables..."
+    ensure_executable "./cicd-scripts/helpers/fetch_env_vars.sh"
+}
+
 # Set environment paths
 update_pythonpath() {
   ensure_executable "./cicd-scripts/helpers/update_pythonpath.sh"
@@ -73,10 +78,15 @@ install_dependencies() {
     echo "Installing dependencies..."
     python -m pip install --upgrade -r ./search_gov_crawler/requirements.txt
     echo "Installing Playwright..."
-    python -m pip install --upgrade pytest-playwright playwright
     playwright install --with-deps
-    playwright install chrome
+    playwright install chrome --force
     deactivate
+}
+
+# Install NLTK (for text)
+install_nltk() {
+    source "$VENV_DIR/bin/activate"
+    python ./search_gov_crawler/elasticsearch/install_nltk.py
 }
 
 # Configure permissions
@@ -111,6 +121,9 @@ start_agents() {
 # Stop running services
 stop_services
 
+# fetch and export env vars
+fetch_env_vars
+
 # Install system dependencies
 install_system_dependencies
 
@@ -128,6 +141,9 @@ setup_virtualenv
 
 # Install dependencies
 install_dependencies
+
+# Install nltk
+install_nltk
 
 # Start AWS agents
 start_agents

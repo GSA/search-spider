@@ -46,7 +46,35 @@ The spider can either scrape for URLs from the list of required domains or take 
 Running the spider produces a list of urls found in `search_gov_crawler/search_gov_spiders/spiders/scrapy_urls/{spider_name}/{spider_name}_{date}-{UTC_time}.txt` as specified by `FEEDS` in `settings.py`.
 
 ## Quick Start
-Make sure to run `pip install -r requirements.txt` and `playwright install` before running any spiders.
+**We support the use of .env file in the root directory, eg:**
+```bash
+SPIDER_ES_INDEX_NAME="i14y-documents-spider"
+SPIDER_ES_INDEX_ALIAS="i14y-documents"
+ES_HOSTS="http://localhost:9200"
+ES_USER="username"
+ES_PASSWORD="password"
+SPIDER_URLS_API="https://fake-api.com/urls"
+```
+
+**Insall and activate virtual environment:**
+```bash
+python -m venv venv
+. venv/bin/activate
+```
+
+**Install required python modules:**
+```bash
+# make sure the virtual environment is activate
+pip install -r ./search_gov_crawler/requirements.txt
+playwright install --with-deps
+playwright install chrome --force
+```
+
+**Install required nltk modules:**
+```bash
+# make sure the virtual environment is activate
+python ./search_gov_crawler/elasticsearch/install_nltk.py
+```
 
 ### Running Against All Listed Search.gov Domains
 Navigate down to `search_gov_crawler/search_gov_spiders`, then enter the command below:
@@ -71,7 +99,7 @@ scrapy crawl domain_spider -a allowed_domains=example.com -a start_urls=www.exam
 ```
 
 ## Setup and Use
-Make sure to run `pip install -r requirements.txt` and `playwright install` before running any spiders.
+Make sure to follow **Quick Start** steps above, before running any spiders.
 
 ### Option 1: straight from command-line
 1. Navigate to the [*spiders*](search_gov_crawler/search_gov_spiders/spiders) directory
@@ -93,7 +121,7 @@ likes you want to redirect your ouput to a log file using something like `<bench
 
           $ python search_gov_spiders/benchmark.py -u https://www.example.com -d example.com
 
-2. To run multiple spiders simultaneously, provide a json file in the format of the [*crawl-sites.json file*](search_gov_crawler/search_gov_spiders/utility_files/crawl-sites.json) as an argument:
+2. To run multiple spiders simultaneously, provide a json file in the format of the [*crawl-sites-sample.json file*](search_gov_crawler/search_gov_spiders/utility_files/crawl-sites-sample.json) as an argument:
 
           $ python search_gov_spiders/benchmark.py -f </path/to/crawl-sites-like-file.json>
 
@@ -165,7 +193,7 @@ There are other options available.  Run `python search_gov_spiders/benchmark.py 
         ## Running Against All Listed Search.gov Domains
 
 ## Running scrapy scheduler
-This process allows for scrapy to be run directly using an in-memory scheduler.  The schedule is based on the initial schedule setup in the [*crawl-sites.json file*](search_gov_crawler/search_gov_spiders/utility_files/crawl-sites.json).  The process will run until killed.
+This process allows for scrapy to be run directly using an in-memory scheduler.  The schedule is based on the initial schedule setup in the [*crawl-sites-sample.json file*](search_gov_crawler/search_gov_spiders/utility_files/crawl-sites-sample.json).  The process will run until killed.
 
 The json input file must be in a format similar what is below.  There are validations in place when the file is read and in tests that should help
 prevent this file from getting into an invalid state.

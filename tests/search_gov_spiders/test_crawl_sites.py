@@ -12,6 +12,7 @@ def fixture_base_crawl_site_args() -> dict:
         "allow_query_string": True,
         "allowed_domains": "example.com",
         "handle_javascript": False,
+        "output_target": "csv",
         "starting_urls": "https://www.example.com",
     }
 
@@ -71,6 +72,19 @@ def test_invalid_crawl_site_wrong_type(base_crawl_site_args, field, new_value, e
     with pytest.raises(TypeError, match=match):
         CrawlSite(**test_args)
 
+@pytest.mark.parametrize(
+    ("field", "new_value", "expected_type"),
+    [
+        ("output_target", "index", {"endpoint", "elasticsearch", "csv"}),
+    ],
+)
+def test_invalid_crawl_site_output_target(base_crawl_site_args, field, new_value, expected_type):
+    test_args = base_crawl_site_args | {field: new_value}
+
+    match = f"Invalid output_target value {new_value}! Must be one of {expected_type}"
+    with pytest.raises(TypeError, match=match):
+        CrawlSite(**test_args)
+
 
 def test_valid_crawl_sites(base_crawl_site_args):
     cs = CrawlSites([CrawlSite(**base_crawl_site_args)])
@@ -106,13 +120,15 @@ def test_invalid_crawl_sites_duplicates(base_crawl_site_args):
 
 def test_crawl_sites_file_is_valid():
     """
-    Read in the actual crawl-sites.json file and instantiate as a CrawlSites class.  This will run all built-in
+    Read in the actual crawl-sites-sample.json file and instantiate as a CrawlSites class.  This will run all built-in
     validations and hopefully let you know if the file is invalid prior to attempting to run it in the scheduler.
     Additionally, we are assuming that there is at least one scheduled job in the file.
     """
-    crawl_sites_file = (
-        Path(__file__).parent.parent.parent / "search_gov_crawler/search_gov_spiders/utility_files/crawl-sites.json"
-    )
 
-    cs = CrawlSites.from_file(file=crawl_sites_file)
-    assert len(list(cs.scheduled())) > 0
+    for file_name in ["crawl-sites-sample", "crawl-sites-production"]:
+        crawl_sites_file = (
+            Path(__file__).parent.parent.parent / f"search_gov_crawler/search_gov_spiders/utility_files/{file_name}.json"
+        )
+
+        cs = CrawlSites.from_file(file=crawl_sites_file)
+        assert len(list(cs.scheduled())) > 0
